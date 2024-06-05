@@ -1,11 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lab 9</title>
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({ 
+      token: "cf4e4692a0eb4a2ca6ca3115f808f5b4"
+      // for more configuration options, see https://docs.trackjs.com
+    });
+  </script>
 
   <style>
     button {
@@ -69,25 +75,34 @@
     </form>
 
     <section id="error-btns">
-      <button>Console Log</button>
-      <button>Console Error</button>
-      <button>Console Count</button>
-      <button>Console Warn</button>
-      <button>Console Assert</button>
-      <button>Console Clear</button>
-      <button>Console Dir</button>
-      <button>Console dirxml</button>
-      <button>Console Group Start</button>
-      <button>Console Group End</button>
-      <button>Console Table</button>
-      <button>Start Timer</button>
-      <button>End Timer</button>
-      <button>Console Trace</button>
-      <button>Trigger a Global Error</button>
+      <button>Console Log Demo</button>
+      <button>Console Error Demo</button>
+      <button>Console Count Demo</button>
+      <button>Console Warn Demo</button>
+      <button>Console Assert Demo</button>
+      <button>Console Clear Demo</button>
+      <button>Console Dir Demo</button>
+      <button>Console dirxml Demo</button>
+      <button>Console Group Start/End Demo</button>
+      <button>Console Table Demo</button>
+      <button>Start Timer Demo</button>
+      <button>End Timer Demo</button>
+      <button>Console Trace Demo</button>
+      <button id="trigger-global-error">Trigger a Global Error</button>
     </section>
   </main>
 
   <script>
+    // Initialize group state flag
+    var isGroupActive = false;
+    // Custom Error object
+    class CustomError extends Error {
+      constructor(message) {
+        super("Sadly an error happened my friend: " + message);
+        this.name = 'CustomError';
+      }
+    }
+
     let form = document.querySelector('form');
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -95,14 +110,135 @@
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+
+      try {
+        if (firstNum === '' || secondNum === '' || isNaN(firstNum) || isNaN(secondNum)) {
+          console.log('Sadly an error happened my friend');
+          throw new CustomError('Both inputs must be numbers.');
+        }
+        let result = eval(`${firstNum} ${operator} ${secondNum}`);
+        if (isNaN(result) || !isFinite(result)) {
+          console.log('Sadly an error happened my friend');
+          throw new CustomError('The result is not a number.');
+        }
+        output.innerHTML = result;
+      } catch (error) {
+        output.innerHTML = ''; // Clear the output element in case of error
+        if (error instanceof CustomError) {
+          console.error(`Calculator Error: ${error.message}`);
+        } else {
+          console.error(error);
+        }
+      }
     });
+
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
 
-    // Start your code here
-    // You may move this JS to another file if you wish
+    // Console Log
+    errorBtns[0].addEventListener('click', () => {
+      console.log("This is a console log message.");
+    });
+
+    // Console Error
+    errorBtns[1].addEventListener('click', () => {
+      console.error("This is a console error message.");
+    });
+
+    // Console Count
+    let count = 0;
+    errorBtns[2].addEventListener('click', () => {
+      count++;
+      console.count("Button clicked:", count);
+    });
+
+    // Console Warn
+    errorBtns[3].addEventListener('click', () => {
+      console.warn("This is a console warning message.");
+    });
+
+    // Console Assert
+    errorBtns[4].addEventListener('click', () => {
+      let condition = false;
+      console.assert(condition, "Assertion failed: condition is false.");
+    });
+
+    // Console Clear
+    errorBtns[5].addEventListener('click', () => {
+      console.clear();
+    });
+
+    // Console Dir
+    errorBtns[6].addEventListener('click', () => {
+      console.dir(document.body);
+    });
+
+    // Console dirxml
+    errorBtns[7].addEventListener('click', () => {
+      console.dirxml(document);
+    });
+
+    // Console Group Start & End
+    errorBtns[8].addEventListener('click', () => {
+      if(isGroupActive){
+        console.groupEnd();
+        isGroupActive = false;
+      }else{
+        console.group("Group Example");
+        console.log("This is inside the group");
+        isGroupActive = true;
+      }
+    });
+
+    console.groupEnd();
+
+    // Console Table
+    errorBtns[9].addEventListener('click', () => {
+      const data = [
+        { name: "John", age: 30 },
+        { name: "Jane", age: 25 },
+        { name: "Doe", age: 40 }
+      ];
+      console.table(data);
+    });
+
+    // Start Timer
+    errorBtns[10].addEventListener('click', () => {
+      console.time("timer");
+    });
+
+    // End Timer
+    errorBtns[11].addEventListener('click', () => {
+      console.timeEnd("timer");
+    });
+
+    // Console Trace
+    errorBtns[12].addEventListener('click', () => {
+      console.trace('Console Trace Demo');
+    });
+
+    document.getElementById('trigger-global-error').addEventListener('click', () => {
+      try {
+        aintGonnaWork(); // This function doesn't exist, so it will throw an error
+      } catch (error) {
+        console.error("Caught an error: ", error);
+        TrackJS.track('Testing TrackJS!');
+      }
+    });
+
+    // Global error handler
+    window.onerror = function(message, source, lineno, colno, error) {
+      console.error('Global Error:', message);
+      return true; // Prevent default browser error handling
+    };
+
+    // Adding event listeners to buttons
+    errorBtns.forEach(button => {
+      const action = consoleActions[button.id];
+      if (action) {
+        button.addEventListener('click', action);
+      }
+    });
   </script>
 </body>
-
 </html>
